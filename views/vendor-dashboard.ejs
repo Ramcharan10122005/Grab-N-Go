@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - Grab 'n' Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .earnings-card {
+            transition: transform 0.3s ease;
+        }
+        .earnings-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-orange-500">Grab 'n' Go</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/menu" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Menu</a>
+                    <a href="/orders" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Orders</a>
+                    <a href="/vendor-dashboard" class="text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Vendor Dashboard Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Vendor Dashboard</h1>
+                <div class="text-sm text-gray-500">
+                    Last updated: <span id="lastUpdated">Just now</span>
+                </div>
+            </div>
+            
+            <!-- Earnings Summary -->
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Earnings Summary</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-orange-50 p-4 rounded-lg earnings-card">
+                        <p class="text-sm text-gray-600">Total Earnings</p>
+                        <p class="text-3xl font-bold text-orange-600" id="totalEarnings">$0.00</p>
+                        <p class="text-xs text-gray-500 mt-1">All time earnings</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg earnings-card">
+                        <p class="text-sm text-gray-600">Completed Orders</p>
+                        <p class="text-3xl font-bold text-green-600" id="completedOrders">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Successfully delivered</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg earnings-card">
+                        <p class="text-sm text-gray-600">Average Order Value</p>
+                        <p class="text-3xl font-bold text-blue-600" id="avgOrderValue">$0.00</p>
+                        <p class="text-xs text-gray-500 mt-1">Per completed order</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Chart -->
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Earnings Overview</h2>
+                <div class="h-64 flex items-center justify-center" id="earningsChart">
+                    <p class="text-gray-500">Loading earnings data...</p>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Orders</h2>
+                    <div class="flex space-x-2">
+                        <button id="refreshOrders" class="bg-orange-100 text-orange-600 px-3 py-1 rounded-md text-sm hover:bg-orange-200">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="ordersTableBody">
+                            <!-- Orders will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noOrdersMessage" class="hidden text-center py-8 text-gray-500">
+                    No completed orders found. Your earnings will appear here once orders are delivered.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const vendorId = '<%= user.id %>';
+            let earningsChart = null;
+            
+            // Function to fetch and display vendor earnings and orders
+            async function fetchVendorData() {
+                try {
+                    // Show loading state
+                    document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading orders...</td></tr>';
+                    
+                    // Fetch earnings
+                    const earningsResponse = await fetch(`/api/vendors/${vendorId}/earnings`);
+                    const earningsData = await earningsResponse.json();
+                    
+                    // Update earnings summary
+                    document.getElementById('totalEarnings').textContent = `$${earningsData.totalEarnings.toFixed(2)}`;
+                    document.getElementById('completedOrders').textContent = earningsData.orders.length;
+                    
+                    // Calculate average order value
+                    const avgOrderValue = earningsData.orders.length > 0 
+                        ? earningsData.totalEarnings / earningsData.orders.length 
+                        : 0;
+                    document.getElementById('avgOrderValue').textContent = `$${avgOrderValue.toFixed(2)}`;
+
+                    // Update last updated timestamp
+                    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+
+                    // Update orders table
+                    const tableBody = document.getElementById('ordersTableBody');
+                    const noOrdersMessage = document.getElementById('noOrdersMessage');
+                    
+                    if (earningsData.orders.length === 0) {
+                        tableBody.innerHTML = '';
+                        noOrdersMessage.classList.remove('hidden');
+                    } else {
+                        noOrdersMessage.classList.add('hidden');
+                        tableBody.innerHTML = '';
+                        
+                        // Group orders by month for chart
+                        const monthlyData = {};
+                        
+                        earningsData.orders.forEach(order => {
+                            const date = new Date(order.transferDate);
+                            const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+                            
+                            if (!monthlyData[monthYear]) {
+                                monthlyData[monthYear] = 0;
+                            }
+                            monthlyData[monthYear] += order.amount;
+                            
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.orderId}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">$${order.amount.toFixed(2)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Delivered
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${new Date(order.transferDate).toLocaleDateString()}
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                        
+                        // Create earnings chart
+                        updateEarningsChart(monthlyData);
+                    }
+                } catch (error) {
+                    console.error('Error fetching vendor data:', error);
+                    document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error loading orders. Please try again.</td></tr>';
+                }
+            }
+            
+            // Function to update earnings chart
+            function updateEarningsChart(monthlyData) {
+                const chartContainer = document.getElementById('earningsChart');
+                
+                // Clear previous chart
+                if (earningsChart) {
+                    earningsChart.destroy();
+                }
+                
+                // Sort months chronologically
+                const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
+                    const [aMonth, aYear] = a.split('/').map(Number);
+                    const [bMonth, bYear] = b.split('/').map(Number);
+                    return aYear === bYear ? aMonth - bMonth : aYear - bYear;
+                });
+                
+                const labels = sortedMonths.map(month => {
+                    const [m, y] = month.split('/');
+                    const date = new Date(y, m - 1);
+                    return date.toLocaleString('default', { month: 'short', year: '2-digit' });
+                });
+                
+                const data = sortedMonths.map(month => monthlyData[month]);
+                
+                // Create new chart
+                const ctx = document.createElement('canvas');
+                chartContainer.innerHTML = '';
+                chartContainer.appendChild(ctx);
+                
+                earningsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Monthly Earnings',
+                            data: data,
+                            backgroundColor: 'rgba(249, 115, 22, 0.5)',
+                            borderColor: 'rgb(249, 115, 22)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value;
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Earnings: $' + context.raw.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Add refresh button functionality
+            document.getElementById('refreshOrders').addEventListener('click', fetchVendorData);
+            
+            // Initial load of vendor data
+            fetchVendorData();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(fetchVendorData, 5 * 60 * 1000);
+        });
+    </script>
+</body>
+</html> 

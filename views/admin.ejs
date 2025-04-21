@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Grab 'n' Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        .status-preparing {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+        .status-ready {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        .status-picked-up {
+            background-color: #E0E7FF;
+            color: #3730A3;
+        }
+        .status-delivered {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        .status-cancelled {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-orange-500">Grab 'n' Go</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/admin" class="text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Admin Dashboard</a>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-600">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                <div class="text-sm text-gray-500">
+                    Welcome, <span class="font-medium text-orange-500"><%= user.username %></span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="ordersTab" class="border-orange-500 text-orange-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Orders
+                    </button>
+                    <button id="restaurantsTab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Restaurants
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="ordersSection" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">All Orders</h3>
+                    <div class="flex space-x-2">
+                        <select id="statusFilter" class="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="preparing">Preparing</option>
+                            <option value="ready">Ready</option>
+                            <option value="picked up">Picked Up</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <input type="text" id="searchOrder" placeholder="Search orders..." class="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+                </div>
+                <div class="border-t border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Restaurants Section -->
+            <div id="restaurantsSection" class="bg-white shadow overflow-hidden sm:rounded-lg hidden">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">All Restaurants</h3>
+                    <input type="text" id="searchRestaurant" placeholder="Search restaurants..." class="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                </div>
+                <div class="border-t border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earnings</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="restaurantsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Restaurants will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderDetailsModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Order Details</h3>
+                            <div class="mt-4">
+                                <div id="orderDetailsContent" class="space-y-4">
+                                    <!-- Order details will be loaded here -->
+                                </div>
+                                <div class="mt-4">
+                                    <label for="orderStatus" class="block text-sm font-medium text-gray-700">Update Status</label>
+                                    <select id="orderStatus" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md">
+                                        <option value="pending">Pending</option>
+                                        <option value="preparing">Preparing</option>
+                                        <option value="ready">Ready</option>
+                                        <option value="picked up">Picked Up</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="updateOrderStatus" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Update Status
+                    </button>
+                    <button type="button" id="closeOrderModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const ordersTab = document.getElementById('ordersTab');
+            const restaurantsTab = document.getElementById('restaurantsTab');
+            const ordersSection = document.getElementById('ordersSection');
+            const restaurantsSection = document.getElementById('restaurantsSection');
+
+            ordersTab.addEventListener('click', function() {
+                ordersTab.classList.add('border-orange-500', 'text-orange-600');
+                ordersTab.classList.remove('border-transparent', 'text-gray-500');
+                restaurantsTab.classList.add('border-transparent', 'text-gray-500');
+                restaurantsTab.classList.remove('border-orange-500', 'text-orange-600');
+                ordersSection.classList.remove('hidden');
+                restaurantsSection.classList.add('hidden');
+            });
+
+            restaurantsTab.addEventListener('click', function() {
+                restaurantsTab.classList.add('border-orange-500', 'text-orange-600');
+                restaurantsTab.classList.remove('border-transparent', 'text-gray-500');
+                ordersTab.classList.add('border-transparent', 'text-gray-500');
+                ordersTab.classList.remove('border-orange-500', 'text-orange-600');
+                restaurantsSection.classList.remove('hidden');
+                ordersSection.classList.add('hidden');
+            });
+
+            // Fetch and display orders
+            async function fetchOrders() {
+                try {
+                    const response = await fetch('/api/admin/orders');
+                    const orders = await response.json();
+                    displayOrders(orders);
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                }
+            }
+
+            // Display orders in the table
+            function displayOrders(orders) {
+                const tableBody = document.getElementById('ordersTableBody');
+                tableBody.innerHTML = '';
+
+                orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order._id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.userId ? order.userId.username : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.vendorId ? order.vendorId.businessName : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$${order.totalAmount.toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="status-badge status-${order.status.replace(' ', '-')}">${order.status}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div class="flex space-x-2">
+                                <button onclick="viewOrderDetails('${order._id}')" class="text-orange-600 hover:text-orange-900">View</button>
+                                <select onchange="quickUpdateStatus('${order._id}', this.value)" class="text-sm rounded border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                                    <option value="" disabled selected>Update Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="preparing">Preparing</option>
+                                    <option value="ready">Ready</option>
+                                    <option value="picked up">Picked Up</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Fetch and display restaurants
+            async function fetchRestaurants() {
+                try {
+                    const response = await fetch('/api/admin/restaurants');
+                    const vendors = await response.json();
+                    
+                    // Fetch earnings for each vendor
+                    const vendorsWithEarnings = await Promise.all(vendors.map(async (vendor) => {
+                        try {
+                            const earningsResponse = await fetch(`/api/admin/vendors/${vendor._id}/earnings`);
+                            const earningsData = await earningsResponse.json();
+                            return {
+                                ...vendor,
+                                totalEarnings: earningsData.totalEarnings || 0,
+                                completedOrders: earningsData.completedOrders || 0
+                            };
+                        } catch (error) {
+                            console.error(`Error fetching earnings for vendor ${vendor._id}:`, error);
+                            return {
+                                ...vendor,
+                                totalEarnings: 0,
+                                completedOrders: 0
+                            };
+                        }
+                    }));
+                    
+                    displayRestaurants(vendorsWithEarnings);
+                } catch (error) {
+                    console.error('Error fetching restaurants:', error);
+                }
+            }
+
+            // Display restaurants in the table
+            function displayRestaurants(vendors) {
+                const tableBody = document.getElementById('restaurantsTableBody');
+                tableBody.innerHTML = '';
+
+                vendors.forEach(vendor => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${vendor._id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vendor.businessName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vendor.username}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vendor.businessAddress}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${vendor.completedOrders || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$${vendor.totalEarnings ? vendor.totalEarnings.toFixed(2) : '0.00'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <button onclick="viewRestaurantDetails('${vendor._id}')" class="text-orange-600 hover:text-orange-900">View</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // View order details
+            window.viewOrderDetails = async function(orderId) {
+                try {
+                    const response = await fetch(`/api/orders/${orderId}`);
+                    const order = await response.json();
+                    
+                    const modal = document.getElementById('orderDetailsModal');
+                    const content = document.getElementById('orderDetailsContent');
+                    const statusSelect = document.getElementById('orderStatus');
+                    
+                    // Set current status
+                    statusSelect.value = order.status;
+                    
+                    // Populate order details
+                    content.innerHTML = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Order ID</p>
+                                <p class="text-sm text-gray-900">${order._id}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Date</p>
+                                <p class="text-sm text-gray-900">${new Date(order.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Customer</p>
+                                <p class="text-sm text-gray-900">${order.userId ? order.userId.username : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Restaurant</p>
+                                <p class="text-sm text-gray-900">${order.vendorId ? order.vendorId.businessName : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Total Amount</p>
+                                <p class="text-sm text-gray-900">$${order.totalAmount.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Status</p>
+                                <p class="text-sm text-gray-900">${order.status}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-500">Items</p>
+                            <ul class="mt-1 text-sm text-gray-900">
+                                ${order.items.map(item => `
+                                    <li>${item.foodItemId ? item.foodItemId.name : 'Unknown Item'} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    
+                    // Show modal
+                    modal.classList.remove('hidden');
+                    
+                    // Set up update button
+                    const updateButton = document.getElementById('updateOrderStatus');
+                    updateButton.onclick = function() {
+                        updateOrderStatus(orderId, statusSelect.value);
+                    };
+                    
+                    // Set up close button
+                    const closeButton = document.getElementById('closeOrderModal');
+                    closeButton.onclick = function() {
+                        modal.classList.add('hidden');
+                    };
+                } catch (error) {
+                    console.error('Error fetching order details:', error);
+                }
+            };
+
+            // Quick update order status without opening modal
+            window.quickUpdateStatus = async function(orderId, status) {
+                if (!status) return;
+                
+                try {
+                    const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status })
+                    });
+                    
+                    if (response.ok) {
+                        // Refresh orders list
+                        fetchOrders();
+                        // Show success message
+                        alert(`Order status updated to: ${status}`);
+                    } else {
+                        console.error('Failed to update order status');
+                        alert('Failed to update order status. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    alert('Error updating order status. Please try again.');
+                }
+            };
+
+            // Update order status
+            async function updateOrderStatus(orderId, status) {
+                try {
+                    const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status })
+                    });
+                    
+                    if (response.ok) {
+                        // Refresh orders list
+                        fetchOrders();
+                        // Close modal
+                        document.getElementById('orderDetailsModal').classList.add('hidden');
+                        // Show success message
+                        alert(`Order status updated to: ${status}`);
+                    } else {
+                        console.error('Failed to update order status');
+                        alert('Failed to update order status. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    alert('Error updating order status. Please try again.');
+                }
+            }
+
+            // View restaurant details
+            window.viewRestaurantDetails = async function(vendorId) {
+                try {
+                    const response = await fetch(`/api/admin/vendors/${vendorId}/earnings`);
+                    const vendorData = await response.json();
+                    
+                    // Find vendor details
+                    const vendorsResponse = await fetch('/api/admin/restaurants');
+                    const vendors = await vendorsResponse.json();
+                    const vendor = vendors.find(v => v._id === vendorId);
+                    
+                    // Implement restaurant details view
+                    alert(`Restaurant: ${vendor ? vendor.businessName : 'Unknown'}\nTotal Earnings: $${vendorData.totalEarnings.toFixed(2)}\nCompleted Orders: ${vendorData.completedOrders}`);
+                } catch (error) {
+                    console.error('Error fetching restaurant details:', error);
+                }
+            };
+
+            // Filter orders by status
+            document.getElementById('statusFilter').addEventListener('change', function() {
+                const status = this.value;
+                const rows = document.querySelectorAll('#ordersTableBody tr');
+                
+                rows.forEach(row => {
+                    const statusCell = row.querySelector('td:nth-child(5)');
+                    if (!status || statusCell.textContent.trim() === status) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Search orders
+            document.getElementById('searchOrder').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#ordersTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Search restaurants
+            document.getElementById('searchRestaurant').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#restaurantsTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Initial load
+            fetchOrders();
+            fetchRestaurants();
+        });
+    </script>
+</body>
+</html> 

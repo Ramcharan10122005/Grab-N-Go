@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Grab 'n' Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        .modal-backdrop.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 28rem;
+            margin: 1rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .image-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            display: none;
+            margin: 0 auto;
+        }
+        .image-preview.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-orange-500">Grab 'n' Go</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/menu" class="text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Menu</a>
+                    <a href="/orders" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Orders</a>
+                    <button id="profileButton" class="flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 focus:outline-none transition-colors duration-200">
+                        <span class="text-lg font-medium"><%= user.username.charAt(0).toUpperCase() %></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Menu Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Menu Items</h1>
+                <% if (user.role === 'vendor') { %>
+                    <button id="addItemButton" class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors duration-200">
+                        Add New Item
+                    </button>
+                <% } %>
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="menuItemsContainer">
+                <!-- Items will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal (Only for vendors) -->
+    <% if (user.role === 'vendor') { %>
+    <div id="addItemModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-900">Add New Menu Item</h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="addItemForm" class="space-y-4" enctype="multipart/form-data">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Item Name</label>
+                        <input type="text" id="name" name="name" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="description" name="description" rows="3" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-700">Price ($)</label>
+                        <input type="number" id="price" name="price" step="0.01" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                        <select id="category" name="category" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                            <option value="">Select a category</option>
+                            <option value="Appetizer">Appetizer</option>
+                            <option value="Main Course">Main Course</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Beverage">Beverage</option>
+                            <option value="Side Dish">Side Dish</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="preparationTime" class="block text-sm font-medium text-gray-700">Preparation Time (minutes)</label>
+                        <input type="number" id="preparationTime" name="preparationTime" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Item Image</label>
+                        <div class="mt-1 flex flex-col items-center">
+                            <img id="imagePreview" class="image-preview mb-2">
+                            <div id="uploadContainer" class="w-full">
+                                <label class="w-full flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-orange-500">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-gray-600">
+                                            <label for="image" class="relative cursor-pointer rounded-md font-medium text-orange-600 hover:text-orange-500">
+                                                <span>Upload a file</span>
+                                                <input id="image" name="image" type="file" accept="image/*" class="sr-only" required>
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <button type="button" id="removeImage" class="hidden mt-2 text-sm text-red-600 hover:text-red-800">Remove Image</button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors duration-200">
+                            Add Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Edit Item Modal (Only for vendors) -->
+    <% if (user.role === 'vendor') { %>
+    <div id="editItemModal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-900">Edit Menu Item</h2>
+                    <button id="closeEditModal" class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="editItemForm" class="space-y-4" enctype="multipart/form-data">
+                    <input type="hidden" id="editItemId" name="itemId">
+                    <div>
+                        <label for="editName" class="block text-sm font-medium text-gray-700">Item Name</label>
+                        <input type="text" id="editName" name="name" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label for="editDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="editDescription" name="description" rows="3" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="editPrice" class="block text-sm font-medium text-gray-700">Price ($)</label>
+                        <input type="number" id="editPrice" name="price" step="0.01" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label for="editCategory" class="block text-sm font-medium text-gray-700">Category</label>
+                        <select id="editCategory" name="category" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                            <option value="">Select a category</option>
+                            <option value="Appetizer">Appetizer</option>
+                            <option value="Main Course">Main Course</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Beverage">Beverage</option>
+                            <option value="Side Dish">Side Dish</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="editPreparationTime" class="block text-sm font-medium text-gray-700">Preparation Time (minutes)</label>
+                        <input type="number" id="editPreparationTime" name="preparationTime" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Item Image</label>
+                        <div class="mt-1 flex flex-col items-center">
+                            <img id="editImagePreview" class="image-preview mb-2">
+                            <div id="editUploadContainer" class="w-full">
+                                <label class="w-full flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-orange-500">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-gray-600">
+                                            <label for="editImage" class="relative cursor-pointer rounded-md font-medium text-orange-600 hover:text-orange-500">
+                                                <span>Upload a file</span>
+                                                <input id="editImage" name="image" type="file" accept="image/*" class="sr-only">
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <button type="button" id="removeEditImage" class="hidden mt-2 text-sm text-red-600 hover:text-red-800">Remove Image</button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors duration-200">
+                            Update Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const isVendor = '<%= user.role %>' === 'vendor';
+            let cart = [];
+            let menuItems = []; // Store menu items globally
+            
+            // Function to fetch and display menu items
+            async function fetchMenuItems() {
+                try {
+                    const response = await fetch('/api/food-items');
+                    const items = await response.json();
+                    menuItems = items; // Store items globally
+                    const container = document.getElementById('menuItemsContainer');
+                    container.innerHTML = '';
+
+                    // Filter items to show only vendor's own items if user is a vendor
+                    const filteredItems = isVendor ? items.filter(item => item.vendorId === '<%= user.id %>') : items;
+
+                    filteredItems.forEach(item => {
+                        const itemElement = document.createElement('div');
+                        itemElement.className = 'bg-white rounded-lg shadow overflow-hidden';
+                        itemElement.innerHTML = `
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-gray-900">${item.name}</h3>
+                                <p class="mt-1 text-gray-500">${item.description}</p>
+                                <div class="mt-2 flex justify-between items-center">
+                                    <span class="text-lg font-medium text-orange-500">$${item.price.toFixed(2)}</span>
+                                    ${isVendor ? `
+                                        <div class="flex space-x-2">
+                                            <button onclick="editItem('${item._id}')" class="text-blue-600 hover:text-blue-800">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button onclick="deleteItem('${item._id}')" class="text-red-600 hover:text-red-800">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <button onclick="addToCart('${item._id}')" class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
+                                            Add to Cart
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(itemElement);
+                    });
+                } catch (error) {
+                    console.error('Error fetching menu items:', error);
+                    const container = document.getElementById('menuItemsContainer');
+                    container.innerHTML = '<p class="text-red-500">Error loading menu items. Please try again later.</p>';
+                }
+            }
+
+            // Initial load of menu items
+            fetchMenuItems();
+
+            // Function to add item to cart
+            window.addToCart = function(itemId) {
+                const item = menuItems.find(item => item._id === itemId);
+                if (item) {
+                    const existingItem = cart.find(cartItem => cartItem._id === itemId);
+                    if (existingItem) {
+                        existingItem.quantity += 1;
+                    } else {
+                        cart.push({ ...item, quantity: 1 });
+                    }
+                    updateCartUI();
+                }
+            };
+
+            // Function to remove item from cart
+            window.removeFromCart = function(itemId) {
+                cart = cart.filter(item => item._id !== itemId);
+                updateCartUI();
+            };
+
+            // Function to update cart UI
+            function updateCartUI() {
+                const cartContainer = document.getElementById('cartContainer');
+                const cartTotal = document.getElementById('cartTotal');
+                const checkoutButton = document.getElementById('checkoutButton');
+                
+                if (cart.length === 0) {
+                    cartContainer.innerHTML = '<p class="text-gray-500">Your cart is empty</p>';
+                    cartTotal.textContent = '$0.00';
+                    checkoutButton.disabled = true;
+                    return;
+                }
+
+                cartContainer.innerHTML = cart.map(item => `
+                    <div class="flex justify-between items-center py-2">
+                        <div>
+                            <h4 class="font-medium">${item.name}</h4>
+                            <p class="text-sm text-gray-500">$${item.price.toFixed(2)} x ${item.quantity}</p>
+                        </div>
+                        <button onclick="removeFromCart('${item._id}')" class="text-red-600 hover:text-red-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                `).join('');
+
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                cartTotal.textContent = `$${total.toFixed(2)}`;
+                checkoutButton.disabled = false;
+            }
+
+            // Function to handle checkout
+            window.checkout = async function() {
+                try {
+                    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    
+                    // Create Razorpay order
+                    const response = await fetch('/create-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            amount: total,
+                            currency: 'INR'
+                        })
+                    });
+
+                    const orderData = await response.json();
+                    
+                    // Prepare order data for verification
+                    const orderItems = cart.map(item => ({
+                        foodItemId: item._id,
+                        quantity: item.quantity,
+                        price: item.price
+                    }));
+
+                    const options = {
+                        key: '<%= process.env.RAZORPAY_KEY_ID %>',
+                        amount: orderData.amount,
+                        currency: orderData.currency,
+                        name: "Grab 'n' Go",
+                        description: "Food Order Payment",
+                        order_id: orderData.orderId,
+                        handler: async function(response) {
+                            try {
+                                // Verify payment
+                                const verifyResponse = await fetch('/verify-payment', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        orderData: {
+                                            items: orderItems,
+                                            totalAmount: total,
+                                            vendorId: cart[0].vendorId,
+                                            pickupTime: new Date(Date.now() + 30 * 60000) // 30 minutes from now
+                                        }
+                                    })
+                                });
+
+                                const result = await verifyResponse.json();
+                                
+                                if (result.success) {
+                                    alert('Payment successful! Your order has been placed.');
+                                    cart = [];
+                                    updateCartUI();
+                                    window.location.href = '/orders';
+                                } else {
+                                    alert('Payment verification failed. Please try again.');
+                                }
+                            } catch (error) {
+                                console.error('Error verifying payment:', error);
+                                alert('Error processing payment. Please try again.');
+                            }
+                        },
+                        prefill: {
+                            name: '<%= user.name %>',
+                            email: '<%= user.email %>',
+                            contact: '<%= user.phone %>'
+                        },
+                        theme: {
+                            color: "#F97316"
+                        }
+                    };
+
+                    const razorpay = new Razorpay(options);
+                    razorpay.open();
+                } catch (error) {
+                    console.error('Error during checkout:', error);
+                    alert('Error processing payment. Please try again.');
+                }
+            };
+
+            // Add cart UI to the page
+            const cartUI = document.createElement('div');
+            cartUI.className = 'fixed bottom-0 right-0 w-full md:w-96 bg-white shadow-lg p-4';
+            cartUI.innerHTML = `
+                <h3 class="text-lg font-semibold mb-4">Your Cart</h3>
+                <div id="cartContainer" class="mb-4">
+                    <p class="text-gray-500">Your cart is empty</p>
+                </div>
+                <div class="flex justify-between items-center border-t pt-4">
+                    <span class="font-semibold">Total:</span>
+                    <span id="cartTotal" class="font-semibold">$0.00</span>
+                </div>
+                <button id="checkoutButton" 
+                    onclick="checkout()" 
+                    class="mt-4 w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    Proceed to Checkout
+                </button>
+            `;
+            document.body.appendChild(cartUI);
+
+            // Initial cart update
+            updateCartUI();
+
+            // Add Item Modal Functionality
+            if (isVendor) {
+                const addItemButton = document.getElementById('addItemButton');
+                const addItemModal = document.getElementById('addItemModal');
+                const closeModal = document.getElementById('closeModal');
+                const addItemForm = document.getElementById('addItemForm');
+                const imageInput = document.getElementById('image');
+                const imagePreview = document.getElementById('imagePreview');
+                const removeImage = document.getElementById('removeImage');
+                const uploadContainer = document.getElementById('uploadContainer');
+
+                // Show modal when Add Item button is clicked
+                addItemButton.addEventListener('click', function() {
+                    console.log('Add Item button clicked');
+                    addItemModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close modal when close button is clicked
+                closeModal.addEventListener('click', function() {
+                    console.log('Close button clicked');
+                    addItemModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                // Close modal when clicking outside the modal content
+                addItemModal.addEventListener('click', function(e) {
+                    if (e.target === addItemModal) {
+                        console.log('Clicked outside modal');
+                        addItemModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+
+                // Handle image preview
+                imageInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.classList.add('active');
+                            removeImage.classList.remove('hidden');
+                            uploadContainer.classList.add('hidden');
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+
+                // Remove image
+                removeImage.addEventListener('click', function() {
+                    imageInput.value = '';
+                    imagePreview.classList.remove('active');
+                    removeImage.classList.add('hidden');
+                    uploadContainer.classList.remove('hidden');
+                });
+
+                // Handle form submission
+                addItemForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch('/api/food-items', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            // Reset form and close modal
+                            addItemForm.reset();
+                            imagePreview.classList.remove('active');
+                            removeImage.classList.add('hidden');
+                            uploadContainer.classList.remove('hidden');
+                            addItemModal.classList.remove('active');
+                            document.body.style.overflow = '';
+                            
+                            // Refresh menu items
+                            fetchMenuItems();
+                            
+                            alert('Item added successfully!');
+                        } else {
+                            const error = await response.json();
+                            alert(`Error adding item: ${error.message || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        console.error('Error adding item:', error);
+                        alert('Error adding item. Please try again.');
+                    }
+                });
+            }
+
+            // Edit Item Functionality
+            window.editItem = async function(itemId) {
+                if (!isVendor) return;
+                
+                try {
+                    const response = await fetch(`/api/food-items/${itemId}`);
+                    const item = await response.json();
+                    
+                    // Populate form fields
+                    document.getElementById('editItemId').value = item._id;
+                    document.getElementById('editName').value = item.name;
+                    document.getElementById('editDescription').value = item.description;
+                    document.getElementById('editPrice').value = item.price;
+                    document.getElementById('editCategory').value = item.category;
+                    document.getElementById('editPreparationTime').value = item.preparationTime;
+                    
+                    // Show current image
+                    const editImagePreview = document.getElementById('editImagePreview');
+                    editImagePreview.src = item.image;
+                    editImagePreview.style.display = 'block';
+                    
+                    // Show modal
+                    const editItemModal = document.getElementById('editItemModal');
+                    editItemModal.style.display = 'flex';
+                    editItemModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } catch (error) {
+                    console.error('Error fetching item details:', error);
+                    alert('Error loading item details. Please try again.');
+                }
+            };
+
+            // Add event listener for edit form submission
+            const editItemForm = document.getElementById('editItemForm');
+            const closeEditModal = document.getElementById('closeEditModal');
+            const editItemModal = document.getElementById('editItemModal');
+
+            // Close modal when close button is clicked
+            closeEditModal.addEventListener('click', function() {
+                editItemModal.style.display = 'none';
+                editItemModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            // Close modal when clicking outside
+            editItemModal.addEventListener('click', function(e) {
+                if (e.target === editItemModal) {
+                    editItemModal.style.display = 'none';
+                    editItemModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Handle edit form submission
+            editItemForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const itemId = document.getElementById('editItemId').value;
+                
+                try {
+                    const response = await fetch(`/api/food-items/${itemId}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        // Reset form and close modal
+                        editItemForm.reset();
+                        editItemModal.style.display = 'none';
+                        editItemModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                        
+                        // Refresh menu items
+                        fetchMenuItems();
+                        
+                        alert('Item updated successfully!');
+                    } else {
+                        const error = await response.json();
+                        alert(`Error updating item: ${error.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error updating item:', error);
+                    alert('Error updating item. Please try again.');
+                }
+            });
+
+            // Delete Item Functionality
+            window.deleteItem = async function(itemId) {
+                if (!isVendor) return;
+                
+                if (confirm('Are you sure you want to delete this item?')) {
+                    try {
+                        const response = await fetch(`/api/food-items/${itemId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            // Refresh menu items
+                            fetchMenuItems();
+                            alert('Item deleted successfully!');
+                        } else {
+                            const error = await response.json();
+                            alert(`Error deleting item: ${error.message || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting item:', error);
+                        alert('Error deleting item. Please try again.');
+                    }
+                }
+            };
+        });
+    </script>
+</body>
+</html> 
