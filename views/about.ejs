@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Grab 'n' Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-orange-500">Grab 'n' Go</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/menu" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Menu</a>
+                    <a href="/about" class="text-orange-500 px-3 py-2 rounded-md text-sm font-medium">About</a>
+                    <a href="/contact" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    <% if (user) { %>
+                        <a href="/orders" class="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium">Orders</a>
+                        <button id="profileButton" class="flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white hover:bg-orange-600 focus:outline-none transition-colors duration-200">
+                            <span class="text-lg font-medium"><%= user.username.charAt(0).toUpperCase() %></span>
+                        </button>
+                    <% } else { %>
+                        <a href="/login" class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">Login</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- About Content -->
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">About Grab 'n' Go</h1>
+            <p class="text-xl text-gray-600">Your favorite food, delivered fresh and fast.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+            <div class="space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-900">Our Story</h2>
+                <p class="text-gray-600">Founded in 2024, Grab 'n' Go has revolutionized the way people experience food delivery. We believe that great food should be accessible to everyone, everywhere. Our platform connects hungry customers with the best local restaurants, ensuring quick delivery and exceptional service.</p>
+                <p class="text-gray-600">What started as a small startup has grown into a thriving community of food lovers, dedicated delivery partners, and passionate restaurant owners. We're proud to be part of your daily food journey.</p>
+            </div>
+            <div class="space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-900">Our Mission</h2>
+                <p class="text-gray-600">At Grab 'n' Go, our mission is to transform the food delivery experience through innovation and dedication to customer satisfaction. We strive to:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Connect people with their favorite restaurants</li>
+                    <li>Support local businesses and help them grow</li>
+                    <li>Provide fast, reliable delivery services</li>
+                    <li>Ensure food quality and safety</li>
+                    <li>Create job opportunities in our communities</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-orange-50 rounded-lg p-8 mb-16">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Why Choose Grab 'n' Go?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="bg-orange-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Fast Delivery</h3>
+                    <p class="text-gray-600">Quick and reliable delivery to your doorstep</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-orange-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Quality Assured</h3>
+                    <p class="text-gray-600">Partner with top-rated restaurants</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-orange-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Easy Ordering</h3>
+                    <p class="text-gray-600">Simple and convenient ordering process</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Join Our Community</h2>
+            <p class="text-gray-600 mb-8">Whether you're a food lover, restaurant owner, or delivery partner, there's a place for you in our community.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="/register" class="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200">Sign Up Now</a>
+                <a href="/contact" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-200 transition-colors duration-200">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Grab 'n' Go</h3>
+                    <p class="text-gray-400">Your favorite food delivery platform</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="/menu" class="text-gray-400 hover:text-white">Menu</a></li>
+                        <li><a href="/about" class="text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contact Info</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Email: info@grabngo.com</li>
+                        <li>Phone: (123) 456-7890</li>
+                        <li>Address: 123 Food Street, Cuisine City</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2024 Grab 'n' Go. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

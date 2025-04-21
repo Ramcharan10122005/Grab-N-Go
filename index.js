@@ -12,6 +12,7 @@ import { dirname } from 'path';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Admin from "./models/adminSchema.js";
+import ContactMessage from "./models/contactMessageSchema.js";
 
 // Import order routes
 import orderRoutes from './routes/orderRoutes.js';
@@ -794,6 +795,91 @@ app.patch('/api/admin/orders/:id/status', isAuthenticated, isAdmin, async (req, 
     } catch (err) {
         console.error('Error updating order status:', err);
         res.status(500).json({ error: 'Error updating order status' });
+    }
+});
+
+// About route
+app.get('/about', (req, res) => {
+    res.render('about', { user: req.session.user || null });
+});
+
+// Contact routes
+app.get('/contact', (req, res) => {
+    res.render('contact', { user: req.session.user || null });
+});
+
+app.post('/contact', async (req, res) => {
+    try {
+        const { name, email, subject, message } = req.body;
+        
+        // Save the contact message to the database
+        const contactMessage = new ContactMessage({
+            name,
+            email,
+            subject,
+            message
+        });
+        
+        await contactMessage.save();
+        
+        res.render('contact', {
+            user: req.session.user || null,
+            message: 'Thank you for your message. We will get back to you soon!'
+        });
+    } catch (error) {
+        console.error('Error processing contact form:', error);
+        res.render('contact', {
+            user: req.session.user || null,
+            message: 'There was an error sending your message. Please try again.'
+        });
+    }
+});
+
+// API endpoint to get unread contact messages
+app.get('/api/admin/unread-messages', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const unreadMessages = await ContactMessage.find({ isRead: false })
+            .sort({ createdAt: -1 });
+        
+        res.json({
+            count: unreadMessages.length,
+            messages: unreadMessages
+        });
+    } catch (error) {
+        console.error('Error fetching unread messages:', error);
+        res.status(500).json({ error: 'Error fetching unread messages' });
+    }
+});
+
+// API endpoint to mark a message as read
+app.patch('/api/admin/messages/:id/read', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const message = await ContactMessage.findById(req.params.id);
+        
+        if (!message) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+        
+        message.isRead = true;
+        await message.save();
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error marking message as read:', error);
+        res.status(500).json({ error: 'Error marking message as read' });
+    }
+});
+
+// API endpoint to get all messages
+app.get('/api/admin/messages', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const messages = await ContactMessage.find()
+            .sort({ createdAt: -1 });
+        
+        res.json(messages);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: 'Error fetching messages' });
     }
 });
 
