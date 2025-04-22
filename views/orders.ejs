@@ -35,7 +35,13 @@
     <!-- Orders Section -->
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="px-4 py-6 sm:px-0">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Orders</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                <% if (user.role === 'vendor') { %>
+                    Restaurant Orders
+                <% } else { %>
+                    Your Orders
+                <% } %>
+            </h2>
 
             <!-- Orders List -->
             <div class="space-y-4" id="ordersContainer">
@@ -71,20 +77,6 @@
             }
         }
 
-        // Function to get payment status color
-        function getPaymentColor(status) {
-            switch (status) {
-                case 'pending':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'completed':
-                    return 'bg-green-100 text-green-800';
-                case 'failed':
-                    return 'bg-red-100 text-red-800';
-                default:
-                    return 'bg-gray-100 text-gray-800';
-            }
-        }
-
         // Function to fetch and display orders
         async function fetchOrders() {
             try {
@@ -106,34 +98,47 @@
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">Order #${order._id.slice(-6)}</h3>
                                 <p class="text-sm text-gray-500">Placed on ${formatDate(order.createdAt)}</p>
+                                <% if (user.role === 'vendor') { %>
+                                    <p class="text-sm text-gray-500 mt-1">Customer: ${order.userId ? order.userId.username : 'N/A'}</p>
+                                <% } %>
                             </div>
                             <div class="flex flex-col items-end space-y-2">
                                 <span class="px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}">
                                     ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                 </span>
-                                <span class="px-3 py-1 rounded-full text-sm font-medium ${getPaymentColor(order.paymentDetails.paymentStatus)}">
-                                    Payment: ${order.paymentDetails.paymentStatus.charAt(0).toUpperCase() + order.paymentDetails.paymentStatus.slice(1)}
-                                </span>
+                                <% if (user.role === 'vendor') { %>
+                                    <select onchange="updateOrderStatus('${order._id}', this.value)" class="text-sm rounded border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                                        <option value="" disabled selected>Update Status</option>
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>Preparing</option>
+                                        <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Ready</option>
+                                        <option value="picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked Up</option>
+                                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                <% } %>
                             </div>
                         </div>
                         <div class="mt-4">
-                            <h4 class="font-medium text-gray-900">Items:</h4>
-                            <ul class="mt-2 space-y-2">
+                            <h4 class="text-sm font-medium text-gray-900">Items:</h4>
+                            <div class="mt-2 space-y-2">
                                 ${order.items.map(item => `
-                                    <li class="flex justify-between">
-                                        <span>${item.quantity}x ${item.foodItemId.name}</span>
-                                        <span>$${(item.price * item.quantity).toFixed(2)}</span>
-                                    </li>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center space-x-2">
+                                            <img src="${item.foodItemId.image}" alt="${item.foodItemId.name}" class="w-10 h-10 rounded object-cover">
+                                            <span class="text-sm text-gray-900">${item.foodItemId.name}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            ${item.quantity}x $${item.price.toFixed(2)}
+                                        </div>
+                                    </div>
                                 `).join('')}
-                            </ul>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium text-gray-900">Total Amount:</span>
-                                <span class="font-bold text-orange-500">$${order.totalAmount.toFixed(2)}</span>
                             </div>
-                            <div class="mt-2">
-                                <span class="text-sm text-gray-500">Pickup Time: ${formatDate(order.pickupTime)}</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-900">Total Amount:</span>
+                                <span class="text-lg font-semibold text-orange-500">$${order.totalAmount.toFixed(2)}</span>
                             </div>
                         </div>
                     `;
@@ -143,6 +148,35 @@
                 console.error('Error fetching orders:', error);
             }
         }
+
+        // Function to update order status (for vendors)
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    // Refresh orders list
+                    fetchOrders();
+                    // Show success message
+                    alert(`Order status updated to: ${status}`);
+                } else {
+                    console.error('Failed to update order status');
+                    alert('Failed to update order status. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                alert('Error updating order status. Please try again.');
+            }
+        }
+
+        // Make updateOrderStatus available globally
+        window.updateOrderStatus = updateOrderStatus;
 
         // Fetch orders when the page loads
         fetchOrders();

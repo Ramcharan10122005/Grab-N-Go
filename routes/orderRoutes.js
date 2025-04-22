@@ -6,12 +6,33 @@ const router = express.Router();
 // Get all orders
 router.get('/api/orders', async (req, res) => {
     try {
-        const orders = await Order.find()
-            .populate('userId', 'name')
-            .populate('vendorId', 'name')
+        console.log('Session user:', req.session.user);
+        let query = {};
+        
+        // If user is a vendor, show only orders for their restaurant
+        if (req.session.user && req.session.user.role === 'vendor') {
+            query.vendorId = req.session.user.id;
+            console.log('Vendor query:', query);
+        }
+        // If user is a customer, show only their orders
+        else if (req.session.user && req.session.user.role === 'user') {
+            query.userId = req.session.user.id;
+            console.log('Customer query:', query);
+        }
+
+        const orders = await Order.find(query)
+            .populate('userId', 'username name')
+            .populate('vendorId', 'businessName')
+            .populate({
+                path: 'items.foodItemId',
+                select: 'name price image'
+            })
             .sort({ createdAt: -1 });
+            
+        console.log('Found orders:', orders.length);
         res.json(orders);
     } catch (error) {
+        console.error('Error fetching orders:', error);
         res.status(500).json({ message: 'Error fetching orders', error: error.message });
     }
 });

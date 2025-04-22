@@ -69,6 +69,9 @@ app.use(session({
     saveUninitialized: true,
 }));
 
+// Mount order routes
+app.use(orderRoutes);
+
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
     if (req.session.user) {
@@ -633,9 +636,6 @@ app.post('/verify-payment', async (req, res) => {
     }
 });
 
-// Use order routes
-app.use('/', orderRoutes);
-
 // Admin routes
 app.get('/admin', (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
@@ -884,5 +884,5 @@ app.get('/api/admin/messages', isAuthenticated, isAdmin, async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log("Server connected to port:", port);
+    console.log(`Server connected to port: http://localhost:${port}`);
 });
